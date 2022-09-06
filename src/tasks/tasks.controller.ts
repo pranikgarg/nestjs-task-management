@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Patch,
   Post,
@@ -21,6 +22,7 @@ import { TasksService } from "./tasks.service";
 @Controller("tasks")
 @UseGuards(AuthGuard())
 export class TasksController {
+  private logger = new Logger("TasksController");
   constructor(private taskService: TasksService) {}
 
   @Get()
@@ -28,7 +30,40 @@ export class TasksController {
     @Query() filterDto: GetTasksFilterDto,
     @GetUser() user: User
   ): Promise<Task[]> {
+    this.logger.verbose(
+      `Get all the tasks with user ${user.username}. Filter: ${JSON.stringify(
+        filterDto
+      )}`
+    );
     return this.taskService.getTasks(filterDto, user);
+  }
+
+  @Get("/:id")
+  getTaskById(@Param("id") id: string, @GetUser() user: User): Promise<Task> {
+    return this.taskService.getTaskById(id, user);
+  }
+
+  @Post()
+  createTask(
+    @Body() createTaskDto: CreateTaskDto,
+    @GetUser() user: User
+  ): Promise<Task> {
+    return this.taskService.createTask(createTaskDto, user);
+  }
+
+  @Delete("/:id")
+  deleteTask(@Param("id") id: string, @GetUser() user: User): Promise<void> {
+    return this.taskService.deleteTask(id, user);
+  }
+
+  @Patch("/:id/status")
+  updateTaskStatus(
+    @Param("id") id: string,
+    @Body() updateTaskStatusDto: UpdateTaskStatusDto,
+    @GetUser() user: User
+  ): Promise<Task> {
+    const { status } = updateTaskStatusDto;
+    return this.taskService.updateTaskStatus(id, status, user);
   }
 
   // @Get()
@@ -40,48 +75,20 @@ export class TasksController {
   //   }
   // }
 
-  @Get("/:id")
-  getTaskById(@Param("id") id: string, @GetUser() user: User): Promise<Task> {
-    return this.taskService.getTaskById(id, user);
-  }
-
   // @Get('/:id')
   // getTaskById(@Param('id') id: string): Task {
   //   return this.taskService.getTaskById(id);
   // }
-
-  @Post()
-  createTask(
-    @Body() createTaskDto: CreateTaskDto,
-    @GetUser() user: User
-  ): Promise<Task> {
-    return this.taskService.createTask(createTaskDto, user);
-  }
 
   // @Post()
   // createTask(@Body() createTaskDto: CreateTaskDto): Task {
   //   return this.taskService.createTask(createTaskDto);
   // }
 
-  @Delete("/:id")
-  deleteTask(@Param("id") id: string, @GetUser() user: User): Promise<void> {
-    return this.taskService.deleteTask(id, user);
-  }
-
   // @Delete('/:id')
   // deleteTask(@Param('id') id: string): void {
   //   this.taskService.deleteTask(id);
   // }
-
-  @Patch("/:id/status")
-  updateTaskStatus(
-    @Param("id") id: string,
-    @Body() updateTaskStatusDto: UpdateTaskStatusDto,
-    @GetUser() user: User
-  ): Promise<Task> {
-    const { status } = updateTaskStatusDto;
-    return this.taskService.updateTaskStatus(id, status, user);
-  }
 
   // @Patch('/:id/status')
   // updateTaskStatus(
